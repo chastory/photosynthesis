@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>광합성 메커니즘 가상 실험실 (Photosynthesis Lab)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+        .glow-box {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+        }
+        .tab-btn.active {
+            border-bottom: 3px solid #10b981;
+            color: #10b981;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">
+                        광합성 메커니즘 가상 인터랙티브 실험실
+                    </h1>
+                    <p class="text-xs text-slate-400">빛, 이산화탄소, 온도가 광합성 속도 및 산소 발생에 미치는 영향 탐구</p>
+                </div>
+            </div>
+
+            <!-- Preset Quick Selection Buttons -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="text-slate-400 font-medium mr-1">실험 조건 프리셋:</span>
+                <button onclick="setPreset('optimal')" class="px-3 py-1.5 bg-emerald-950/80 hover:bg-emerald-800/80 text-emerald-300 border border-emerald-700/50 rounded-lg transition">🌱 최적 광합성</button>
+                <button onclick="setPreset('midday')" class="px-3 py-1.5 bg-amber-950/80 hover:bg-amber-800/80 text-amber-300 border border-amber-700/50 rounded-lg transition">☀️ 한여름 강한 빛</button>
+                <button onclick="setPreset('heatwave')" class="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-800/80 text-rose-300 border border-rose-700/50 rounded-lg transition">🔥 고온 변성 (45℃)</button>
+                <button onclick="setPreset('greenlight')" class="px-3 py-1.5 bg-lime-950/80 hover:bg-lime-800/80 text-lime-300 border border-lime-700/50 rounded-lg transition">🟢 녹색파장 실험</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+
+        <!-- Left Controls Column (4 cols) -->
+        <section class="lg:col-span-4 space-y-5">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 glow-box">
+                <h2 class="text-base font-bold text-slate-200 mb-4 flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        실험 변수 조절 패널
+                    </span>
+                    <button onclick="resetControls()" class="text-xs text-slate-400 hover:text-emerald-400 underline">초기화</button>
+                </h2>
+
+                <!-- Control 1: Light Intensity -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-sm font-medium text-amber-300 flex items-center gap-1.5">
+                            ☀️ 빛의 세기 (Light)
+                        </label>
+                        <span id="val-light" class="text-sm font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40">70 %</span>
+                    </div>
+                    <input type="range" id="slider-light" min="0" max="100" value="70" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400" oninput="updateSimulation()">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>0% (어둠)</span>
+                        <span>50% (광상상점 부근)</span>
+                        <span>100% (강한 햇빛)</span>
+                    </div>
+                </div>
+
+                <!-- Control 2: CO2 Concentration -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-sm font-medium text-sky-300 flex items-center gap-1.5">
+                            🫧 CO₂ 농도 (이산화탄소)
+                        </label>
+                        <span id="val-co2" class="text-sm font-bold text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-800/40">0.04 %</span>
+                    </div>
+                    <input type="range" id="slider-co2" min="0" max="0.15" step="0.005" value="0.04" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-400" oninput="updateSimulation()">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>0.00%</span>
+                        <span>0.04% (대기 평균)</span>
+                        <span>0.15% (포화 이상)</span>
+                    </div>
+                </div>
+
+                <!-- Control 3: Temperature -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-sm font-medium text-rose-300 flex items-center gap-1.5">
+                            🌡️ 온도 (Temperature)
+                        </label>
+                        <span id="val-temp" class="text-sm font-bold text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/40">25 ℃</span>
+                    </div>
+                    <input type="range" id="slider-temp" min="0" max="50" value="25" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-400" oninput="updateSimulation()">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>0℃ (빙점)</span>
+                        <span>35℃ (최적온도)</span>
+                        <span>50℃ (효소변성)</span>
+                    </div>
+                </div>
+
+                <!-- Control 4: Light Wavelength / Color -->
+                <div class="mb-4">
+                    <label class="text-sm font-medium text-purple-300 block mb-2 flex items-center gap-1.5">
+                        🌈 빛의 파장 (색상 선택)
+                    </label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setWavelength('white')" id="btn-wave-white" class="wave-btn py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-800 text-slate-200 font-medium active ring-2 ring-emerald-400">백색광</button>
+                        <button onclick="setWavelength('red')" id="btn-wave-red" class="wave-btn py-1.5 text-xs rounded-lg border border-rose-900/60 bg-rose-950/40 text-rose-300 font-medium hover:bg-rose-900/60">적색광</button>
+                        <button onclick="setWavelength('blue')" id="btn-wave-blue" class="wave-btn py-1.5 text-xs rounded-lg border border-blue-900/60 bg-blue-950/40 text-blue-300 font-medium hover:bg-blue-900/60">청색광</button>
+                        <button onclick="setWavelength('green')" id="btn-wave-green" class="wave-btn py-1.5 text-xs rounded-lg border border-emerald-900/60 bg-emerald-950/40 text-emerald-300 font-medium hover:bg-emerald-900/60">녹색광</button>
+                    </div>
+                    <p id="wave-desc" class="text-[11px] text-slate-400 mt-2 bg-slate-950 p-2 rounded-lg border border-slate-800">
+                        * 백색광: 모든 가시광선 파장 포함 (기본 전반적 효율)
+                    </p>
+                </div>
+
+                <!-- Plant Type Toggle -->
+                <div class="pt-3 border-t border-slate-800">
+                    <label class="text-xs text-slate-400 block mb-1.5">식물 종류 특성:</label>
+                    <div class="flex gap-2">
+                        <label class="flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border border-slate-700 bg-slate-800 cursor-pointer text-xs font-medium text-emerald-300">
+                            <input type="radio" name="plantType" value="sun" checked onchange="updateSimulation()" class="accent-emerald-500">
+                            양지식물 (Sun)
+                        </label>
+                        <label class="flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border border-slate-700 bg-slate-800 cursor-pointer text-xs font-medium text-teal-300">
+                            <input type="radio" name="plantType" value="shade" onchange="updateSimulation()" class="accent-emerald-500">
+                            음지식물 (Shade)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Status Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+                <h3 class="text-xs uppercase tracking-wider text-slate-400 font-semibold border-b border-slate-800 pb-2">
+                    📊 실시간 측정 결과 데이터
+                </h3>
+
+                <!-- Rate Gauge Indicator -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300">총 광합성 속도 (Gross Rate)</span>
+                        <span id="rate-gross" class="font-bold text-emerald-400">0.0 umol/m²/s</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                        <div id="bar-gross" class="bg-gradient-to-r from-emerald-500 to-teal-300 h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300">호흡 작용 소모 (Respiration)</span>
+                        <span id="rate-resp" class="font-bold text-rose-400">-0.0 umol/m²/s</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="bar-resp" class="bg-rose-500 h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-950 rounded-xl border border-emerald-900/40 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs text-slate-400 block">순 광합성량 (Net Rate)</span>
+                        <span id="rate-net-label" class="text-lg font-extrabold text-emerald-400">0.0</span>
+                        <span class="text-xs text-slate-400"> μmol/m²/s</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block">산소($O_2$) 방출율</span>
+                        <span id="bubble-rate-text" class="text-base font-bold text-sky-300">0 방울/분</span>
+                    </div>
+                </div>
+
+                <!-- Current Limiting Factor Indicator -->
+                <div class="p-2.5 bg-amber-950/30 border border-amber-800/40 rounded-xl flex items-center gap-2">
+                    <span class="text-lg">⚠️</span>
+                    <div>
+                        <span class="text-[11px] text-amber-300/80 block font-medium">현재 주 한계 요인 (Limiting Factor):</span>
+                        <span id="limiting-factor-text" class="text-xs font-bold text-amber-200">빛의 세기 부족</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Center Visualization & Tabs Column (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col space-y-4">
+            
+            <!-- View Tabs -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-1.5 flex gap-1 text-xs">
+                <button onclick="switchTab('micro')" id="tab-micro" class="tab-btn active flex-1 py-2 text-center rounded-lg transition hover:text-emerald-400">
+                    🔬 미시 시뮬레이션 (엽록체)
+                </button>
+                <button onclick="switchTab('macro')" id="tab-macro" class="tab-btn flex-1 py-2 text-center rounded-lg transition hover:text-emerald-400">
+                    🧪 거시 실험 (검정말 기포)
+                </button>
+            </div>
+
+            <!-- Simulation Canvas Container -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex-grow flex flex-col items-center justify-center min-h-[380px] relative overflow-hidden">
+                
+                <!-- View 1: Microscopic Chloroplast canvas -->
+                <div id="view-micro" class="w-full h-full flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center mb-2 px-1 text-xs text-slate-400">
+                        <span>틸라코이드(명반응) & 스트로마(암반응) 동역학</span>
+                        <span class="text-emerald-400 animate-pulse">● 실시간 동작 중</span>
+                    </div>
+                    <canvas id="canvas-micro" width="480" height="320" class="w-full h-72 rounded-xl bg-slate-950 border border-slate-800"></canvas>
+                    
+                    <div class="grid grid-cols-2 gap-2 w-full mt-3 text-[11px] text-slate-300">
+                        <div class="p-2 bg-slate-950/60 rounded-lg border border-slate-800 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>
+                            <span>광자(빛) 틸라코이드 충돌 ➔ $O_2$, ATP, NADPH 생성</span>
+                        </div>
+                        <div class="p-2 bg-slate-950/60 rounded-lg border border-slate-800 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>
+                            <span>칼빈 회로 ➔ $CO_2$ 고정 및 포도당($C_6H_{12}O_6$) 합성</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View 2: Macroscopic Plant Bubble Experiment canvas -->
+                <div id="view-macro" class="w-full h-full flex flex-col items-center hidden">
+                    <div class="w-full flex justify-between items-center mb-2 px-1 text-xs text-slate-400">
+                        <span>검정말(Elodea) 수생식물 산소 기포 모의 실험</span>
+                        <span class="text-sky-400">깔때기 및 시험관 기체 포집</span>
+                    </div>
+                    <canvas id="canvas-macro" width="480" height="320" class="w-full h-72 rounded-xl bg-slate-950 border border-slate-800"></canvas>
+
+                    <div class="w-full mt-3 p-2 bg-slate-950/60 rounded-lg border border-slate-800 text-[11px] text-slate-300 flex justify-between items-center">
+                        <span>💡 수조 속 탄산수소나트륨($NaHCO_3$) 공급으로 $CO_2$ 조절</span>
+                        <span id="macro-status" class="text-emerald-400 font-semibold">산소 발생 활발</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Concept Interactive Summary Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-xs space-y-2">
+                <h4 class="font-bold text-slate-200 flex items-center gap-1.5">
+                    💡 광합성 종합 화학 반응식
+                </h4>
+                <div class="p-2.5 bg-slate-950 rounded-xl text-center text-emerald-300 font-mono text-xs border border-emerald-900/30 overflow-x-auto">
+                    6CO₂ + 12H₂O + 빛 에너지 ➔ C₆H₁₂O₆ + 6O₂ + 6H₂O
+                </div>
+                <p class="text-slate-400 leading-relaxed text-[11px]">
+                    • <b>명반응 (Light Reaction):</b> 틸라코이드 막에서 빛과 물($H_2O$)을 이용해 $O_2$, ATP, NADPH 생성.<br>
+                    • <b>암반응 (Calvin Cycle):</b> 스트로마에서 $CO_2$와 명반응 산물(ATP, NADPH)을 사용하여 포도당 합성.
+                </p>
+            </div>
+        </section>
+
+        <!-- Right Charts & Analysis Column (3 cols) -->
+        <section class="lg:col-span-3 space-y-4">
+            
+            <!-- Realtime Curve Chart Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 glow-box">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold text-slate-200">📈 광합성 곡선 분석</h3>
+                    <select id="chart-type" onchange="changeChartMode()" class="bg-slate-800 text-slate-300 text-[11px] rounded px-2 py-1 border border-slate-700">
+                        <option value="light">빛의 세기 vs 광합성량</option>
+                        <option value="co2">CO₂ 농도 vs 광합성량</option>
+                        <option value="temp">온도 vs 광합성량</option>
+                    </select>
+                </div>
+                
+                <div class="relative h-48 w-full">
+                    <canvas id="chart-canvas"></canvas>
+                </div>
+
+                <div id="chart-explanation" class="mt-2 text-[11px] text-slate-400 bg-slate-950 p-2 rounded-lg border border-slate-800">
+                    * 빨간 점: 현재 설정된 환경 조건의 위치
+                </div>
+            </div>
+
+            <!-- Quiz & Practice Widget -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <h3 class="text-xs font-bold text-slate-200 flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span>🧠 핵심 개념 확인 퀴즈</span>
+                    <span id="quiz-score" class="text-emerald-400 text-[11px]">점수: 0점</span>
+                </h3>
+
+                <div id="quiz-box" class="space-y-2">
+                    <p id="quiz-question" class="text-xs text-slate-300 font-medium leading-snug">
+                        Q. 질문을 불러오는 중...
+                    </p>
+                    <div id="quiz-options" class="space-y-1.5 text-xs">
+                        <!-- Options generated via JS -->
+                    </div>
+                </div>
+
+                <div id="quiz-feedback" class="text-[11px] hidden p-2 rounded-lg font-medium"></div>
+
+                <button onclick="nextQuizQuestion()" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition border border-slate-700">
+                    다음 문제 풀기 ➔
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-3 text-center text-xs text-slate-500">
+        <p>생명과학 교육용 광합성 시뮬레이터 • HTML5 Canvas & Pure JS Model (No External Backend Required)</p>
+    </footer>
+
+    <script>
+        // Global Simulation State
+        const state = {
+            light: 70,        // 0 ~ 100 %
+            co2: 0.04,        // 0 ~ 0.15 %
+            temp: 25,         // 0 ~ 50 deg C
+            wavelength: 'white', // white, red, blue, green
+            plantType: 'sun', // sun (양지) or shade (음지)
+            activeTab: 'micro', // micro or macro
+            chartMode: 'light' // light, co2, temp
+        };
+
+        // Quiz State
+        const quizData = [
+            {
+                q: "온도가 45℃ 이상으로 지나치게 높아지면 광합성량이 급격히 감소하는 주된 이유는 무엇인가요?",
+                options: [
+                    "빛의 세기가 너무 세지기 때문",
+                    "광합성에 관여하는 효소가 단백질 변성을 일으키기 때문",
+                    "이산화탄소 농도가 고갈되기 때문",
+                    "물 분자가 모두 증발하기 때문"
+                ],
+                ans: 1,
+                exp: "광합성 암반응(칼빈회로)을 촉진하는 효소(Rubisco 등)는 단백질 성분이므로 약 40~45℃ 이상의 고온에서 주형 구조가 변성되어 촉매 기능을 잃습니다."
+            },
+            {
+                q: "식물이 광합성을 할 때 가장 흡수 효율이 낮은 빛의 색상(파장)은 무엇인가요?",
+                options: ["청색광 (파란빛)", "적색광 (빨간빛)", "녹색광 (초록빛)", "자외선"],
+                ans: 2,
+                exp: "엽록소 a와 b는 주로 적색광(600-700nm)과 청색광(400-500nm)을 잘 흡수하며, 녹색광은 대부분 반사하거나 통과시키므로 효율이 가장 낮습니다."
+            },
+            {
+                q: "빛의 세기를 계속 높여도 더 이상 광합성량이 증가하지 않는 지점을 무엇이라 하나요?",
+                options: ["광보상점", "광포화점", "이산화탄소 보상점", "최적 온도점"],
+                ans: 1,
+                exp: "광포화점은 빛의 세기가 증가함에 따라 광합성량이 최대에 도달하여 더 이상 증가하지 않는 한계 지점입니다."
+            },
+            {
+                q: "광합성 과정 중 명반응(Light reaction)이 일어나는 엽록체 내부의 주된 장소는 어디인가요?",
+                options: ["스트로마", "틸라코이드 막", "리보솜", "외막"],
+                ans: 1,
+                exp: "명반응은 엽록소 분자가 존재하는 틸라코이드 막에서 일어나며, 빛을 받아 물을 분해하여 산소와 ATP, NADPH를 생성합니다."
+            }
+        ];
+        let currentQuizIdx = 0;
+        let quizScore = 0;
+
+        // Wavelength efficiency multiplier
+        const wavelengthFactors = {
+            white: 1.0,
+            red: 0.95,
+            blue: 0.88,
+            green: 0.18
+        };
+
+        let chartInstance = null;
+        let animFrameId = null;
+
+        // Particles for Micro Canvas
+        let photons = [];
+        let bubbles = [];
+        let calvinAngle = 0;
+
+        /**
+         * Calculate Gross & Net Photosynthesis Rates based on biological models
+         */
+        function calculatePhotosynthesis() {
+            const isSun = state.plantType === 'sun';
+            
+            // 1. Light Effect (Hyperbolic saturation curve)
+            // Sun plants have higher light saturation point (Km_light)
+            const Km_light = isSun ? 35 : 18;
+            const maxLightRate = isSun ? 30 : 18;
+            const waveEff = wavelengthFactors[state.wavelength] || 1.0;
+            const effectiveLight = state.light * waveEff;
+            const rate_light = (maxLightRate * effectiveLight) / (Km_light + effectiveLight);
+
+            // 2. CO2 Effect (Michaelis-Menten kinetics)
+            const Km_co2 = 0.02; // %
+            const maxCo2Rate = 30;
+            const rate_co2 = (maxCo2Rate * state.co2) / (Km_co2 + state.co2);
+
+            // 3. Temperature Effect (Optimal bell curve with high temp denaturation)
+            // Optimal temp around 35C. Drops drastically after 42C.
+            let rate_temp = 1.0;
+            const temp = state.temp;
+            if (temp <= 35) {
+                // Q10 effect ~ 2.0 per 10 deg up to 35C
+                rate_temp = Math.pow(1.8, (temp - 25) / 10);
+            } else if (temp <= 40) {
+                rate_temp = Math.pow(1.8, (35 - 25) / 10) * (1 - (temp - 35) * 0.08);
+            } else {
+                // Denaturation
+                rate_temp = Math.max(0, Math.pow(1.8, (35 - 25) / 10) * (0.6 - (temp - 40) * 0.12));
+            }
+
+            // Gross Photosynthesis = min(Light, CO2) * Temperature_factor
+            // Liebig's law of minimum
+            const grossValue = Math.min(rate_light, rate_co2) * Math.min(rate_temp, 1.8);
+            const gross = Math.max(0, grossValue);
+
+            // Respiration Rate (increases with temperature exponentially)
+            const baseResp = isSun ? 2.5 : 1.2;
+            const respiration = baseResp * Math.pow(1.6, (temp - 20) / 10);
+
+            // Net Photosynthesis Rate
+            const net = gross - respiration;
+
+            // Determine limiting factor
+            let limiting = "빛의 세기 부족";
+            if (rate_temp < 0.2 && temp > 40) {
+                limiting = "고온에 의한 효소 변성 (Rubisco 붕괴)";
+            } else if (rate_co2 < rate_light) {
+                limiting = "이산화탄소(CO₂) 농도 부족";
+            } else if (state.wavelength === 'green') {
+                limiting = "녹색파장의 낮은 흡수율";
+            } else {
+                limiting = "빛의 세기 (광포화 수치 전)";
+            }
+
+            return {
+                gross: parseFloat(gross.toFixed(2)),
+                resp: parseFloat(respiration.toFixed(2)),
+                net: parseFloat(net.toFixed(2)),
+                limiting: limiting
+            };
+        }
+
+        function updateSimulation() {
+            // Read input controls
+            state.light = parseFloat(document.getElementById('slider-light').value);
+            state.co2 = parseFloat(document.getElementById('slider-co2').value);
+            state.temp = parseFloat(document.getElementById('slider-temp').value);
+            
+            const plantRadios = document.getElementsByName('plantType');
+            for (let r of plantRadios) {
+                if (r.checked) state.plantType = r.value;
+            }
+
+            // Update label texts
+            document.getElementById('val-light').innerText = state.light + ' %';
+            document.getElementById('val-co2').innerText = state.co2.toFixed(3) + ' %';
+            document.getElementById('val-temp').innerText = state.temp + ' ℃';
+
+            // Calculate results
+            const res = calculatePhotosynthesis();
+
+            // Update metrics display
+            document.getElementById('rate-gross').innerText = res.gross + ' μmol/m²/s';
+            document.getElementById('rate-resp').innerText = '-' + res.resp + ' μmol/m²/s';
+            
+            const netElem = document.getElementById('rate-net-label');
+            netElem.innerText = (res.net > 0 ? '+' : '') + res.net;
+            if (res.net > 0) {
+                netElem.className = "text-lg font-extrabold text-emerald-400";
+            } else if (res.net === 0) {
+                netElem.className = "text-lg font-extrabold text-amber-400"; // Compensation point!
+            } else {
+                netElem.className = "text-lg font-extrabold text-rose-400"; // Respiration dominates
+            }
+
+            // Update Progress Bars (Max scale 35)
+            document.getElementById('bar-gross').style.width = Math.min(100, (res.gross / 35) * 100) + '%';
+            document.getElementById('bar-resp').style.width = Math.min(100, (res.resp / 35) * 100) + '%';
+
+            // Bubble rate text ( proportional to net photosynthesis )
+            const bubbleRate = Math.max(0, Math.round(res.net * 3.5));
+            document.getElementById('bubble-rate-text').innerText = bubbleRate + ' 방울/분';
+
+            // Limiting factor text
+            document.getElementById('limiting-factor-text').innerText = res.limiting;
+
+            // Update chart plot point
+            updateChart();
+        }
+
+        function setWavelength(color) {
+            state.wavelength = color;
+            document.querySelectorAll('.wave-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-emerald-400');
+            });
+            document.getElementById('btn-wave-' + color).classList.add('ring-2', 'ring-emerald-400');
+
+            const descMap = {
+                white: "* 백색광: 가시광선 전체 파장 (기본 주광색 효율)",
+                red: "* 적색광 (~660nm): 엽록소 a/b 최고 흡수 파장대 (높은 효율)",
+                blue: "* 청색광 (~450nm): 엽록소 흡수 및 굴광성 자극 (높은 효율)",
+                green: "* 녹색광 (~550nm): 엽록소에 의해 대부분 반사/통과됨 (최저 효율)"
+            };
+            document.getElementById('wave-desc').innerText = descMap[color];
+
+            updateSimulation();
+        }
+
+        function setPreset(preset) {
+            if (preset === 'optimal') {
+                document.getElementById('slider-light').value = 80;
+                document.getElementById('slider-co2').value = 0.08;
+                document.getElementById('slider-temp').value = 32;
+                setWavelength('white');
+            } else if (preset === 'midday') {
+                document.getElementById('slider-light').value = 100;
+                document.getElementById('slider-co2').value = 0.04;
+                document.getElementById('slider-temp').value = 35;
+                setWavelength('white');
+            } else if (preset === 'heatwave') {
+                document.getElementById('slider-light').value = 90;
+                document.getElementById('slider-co2').value = 0.05;
+                document.getElementById('slider-temp').value = 46; // High temp denaturation
+                setWavelength('white');
+            } else if (preset === 'greenlight') {
+                document.getElementById('slider-light').value = 80;
+                document.getElementById('slider-co2').value = 0.05;
+                document.getElementById('slider-temp').value = 25;
+                setWavelength('green');
+            }
+            updateSimulation();
+        }
+
+        function resetControls() {
+            setPreset('optimal');
+        }
+
+        function switchTab(tab) {
+            state.activeTab = tab;
+            document.getElementById('tab-micro').classList.toggle('active', tab === 'micro');
+            document.getElementById('tab-macro').classList.toggle('active', tab === 'macro');
+
+            document.getElementById('view-micro').classList.toggle('hidden', tab !== 'micro');
+            document.getElementById('view-macro').classList.toggle('hidden', tab !== 'macro');
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('chart-canvas').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '광합성 곡선',
+                            data: [],
+                            borderColor: '#10b981',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '현재 상태 point',
+                            data: [],
+                            backgroundColor: '#ef4444',
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            pointRadius: 6,
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
+                            title: { display: true, text: '빛의 세기 (%)', color: '#94a3b8', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
+                            title: { display: true, text: '순광합성량', color: '#94a3b8', font: { size: 10 } },
+                            min: -5,
+                            max: 35
+                        }
+                    }
+                }
+            });
+            updateChart();
+        }
+
+        function changeChartMode() {
+            state.chartMode = document.getElementById('chart-type').value;
+            updateChart();
+        }
+
+        function updateChart() {
+            if (!chartInstance) return;
+
+            const mode = state.chartMode;
+            const labels = [];
+            const curveData = [];
+            const currentRes = calculatePhotosynthesis();
+
+            let currentX = 0;
+            let currentY = currentRes.net;
+
+            // Save state copy to generate curve
+            const origLight = state.light;
+            const origCo2 = state.co2;
+            const origTemp = state.temp;
+
+            if (mode === 'light') {
+                chartInstance.options.scales.x.title.text = '빛의 세기 (%)';
+                currentX = origLight;
+                for (let x = 0; x <= 100; x += 5) {
+                    labels.push(x);
+                    state.light = x;
+                    curveData.push(calculatePhotosynthesis().net);
+                }
+            } else if (mode === 'co2') {
+                chartInstance.options.scales.x.title.text = 'CO₂ 농도 (%)';
+                currentX = origCo2;
+                for (let x = 0; x <= 0.15; x += 0.008) {
+                    labels.push(x.toFixed(2));
+                    state.co2 = x;
+                    curveData.push(calculatePhotosynthesis().net);
+                }
+            } else if (mode === 'temp') {
+                chartInstance.options.scales.x.title.text = '온도 (℃)';
+                currentX = origTemp;
+                for (let x = 0; x <= 50; x += 2) {
+                    labels.push(x);
+                    state.temp = x;
+                    curveData.push(calculatePhotosynthesis().net);
+                }
+            }
+
+            // Restore original state
+            state.light = origLight;
+            state.co2 = origCo2;
+            state.temp = origTemp;
+
+            // Update Chart datasets
+            chartInstance.data.labels = labels;
+            chartInstance.data.datasets[0].data = curveData;
+
+            // Find closest index for point marker
+            let closestIdx = 0;
+            if (mode === 'light') closestIdx = Math.round(currentX / 5);
+            else if (mode === 'co2') closestIdx = Math.round(currentX / 0.008);
+            else if (mode === 'temp') closestIdx = Math.round(currentX / 2);
+
+            closestIdx = Math.max(0, Math.min(labels.length - 1, closestIdx));
+
+            const pointData = new Array(labels.length).fill(null);
+            pointData[closestIdx] = currentY;
+            chartInstance.data.datasets[1].data = pointData;
+
+            chartInstance.update();
+
+            // Dynamic explanation update
+            const expElem = document.getElementById('chart-explanation');
+            if (mode === 'light') {
+                expElem.innerHTML = `💡 <b>광합성-빛 곡선:</b> 초기엔 직진 상승하다가 광포화점(약 ${state.plantType === 'sun' ? '35%' : '18%'}) 이후 일정해집니다. (빨간점: 현재 설정값)`;
+            } else if (mode === 'co2') {
+                expElem.innerHTML = `🫧 <b>CO₂ 농도 곡선:</b> 약 0.08~0.10% 부근에서 이산화탄소 포화점에 도달합니다.`;
+            } else if (mode === 'temp') {
+                expElem.innerHTML = `🌡️ <b>온도 곡선:</b> 35℃ 부근에서 최적 속도를 보이다가 42℃ 이상에서 효소 고온 변성으로 수락 하강합니다.`;
+            }
+        }
+
+        function initCanvasAnimation() {
+            const microCanvas = document.getElementById('canvas-micro');
+            const microCtx = microCanvas.getContext('2d');
+
+            const macroCanvas = document.getElementById('canvas-macro');
+            const macroCtx = macroCanvas.getContext('2d');
+
+            function renderLoop() {
+                const res = calculatePhotosynthesis();
+
+                // -------------------------------------------------------------
+                // 1. Micro View: Chloroplast Organelle & Calvin Cycle
+                // -------------------------------------------------------------
+                microCtx.clearRect(0, 0, microCanvas.width, microCanvas.height);
+
+                // Draw Chloroplast Double Membrane Background
+                microCtx.fillStyle = '#064e3b';
+                microCtx.beginPath();
+                microCtx.ellipse(240, 160, 210, 130, 0, 0, Math.PI * 2);
+                microCtx.fill();
+                microCtx.strokeStyle = '#059669';
+                microCtx.lineWidth = 4;
+                microCtx.stroke();
+
+                // Draw Thylakoid Stacks (Grana - 명반응 장소)
+                const granaPositions = [
+                    { x: 130, y: 130 }, { x: 130, y: 170 }, { x: 130, y: 210 },
+                    { x: 210, y: 120 }, { x: 210, y: 160 }, { x: 210, y: 200 }
+                ];
+                granaPositions.forEach(p => {
+                    microCtx.fillStyle = '#10b981';
+                    microCtx.beginPath();
+                    microCtx.roundRect(p.x - 30, p.y - 12, 60, 24, 6);
+                    microCtx.fill();
+                    microCtx.strokeStyle = '#047857';
+                    microCtx.lineWidth = 1.5;
+                    microCtx.stroke();
+                });
+
+                // Label Grana & Stroma
+                microCtx.fillStyle = '#a7f3d0';
+                microCtx.font = '10px Noto Sans KR';
+                microCtx.fillText('틸라코이드 (명반응)', 120, 95);
+                microCtx.fillText('스트로마 (암반응)', 330, 95);
+
+                // Photons (Light energy falling down)
+                const photonCount = Math.floor(state.light / 10);
+                if (photons.length < photonCount && Math.random() < 0.3) {
+                    const colorMap = {
+                        white: '#fef08a',
+                        red: '#f87171',
+                        blue: '#60a5fa',
+                        green: '#4ade80'
+                    };
+                    photons.push({
+                        x: 80 + Math.random() * 160,
+                        y: 10,
+                        speed: 3 + Math.random() * 3,
+                        color: colorMap[state.wavelength]
+                    });
+                }
+
+                // Render Photons
+                for (let i = photons.length - 1; i >= 0; i--) {
+                    let p = photons[i];
+                    p.y += p.speed;
+                    microCtx.fillStyle = p.color;
+                    microCtx.beginPath();
+                    microCtx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    microCtx.fill();
+
+                    // Collision with Thylakoid
+                    if (p.y > 120 && p.y < 220) {
+                        photons.splice(i, 1);
+                        // Produce Oxygen Bubble particle if net rate > 0
+                        if (res.net > 0 && Math.random() < 0.6) {
+                            bubbles.push({
+                                x: p.x + (Math.random() * 20 - 10),
+                                y: p.y,
+                                r: 2 + Math.random() * 3,
+                                vy: 1 + Math.random() * 1.5,
+                                type: 'O2'
+                            });
+                        }
+                    } else if (p.y > 300) {
+                        photons.splice(i, 1);
+                    }
+                }
+
+                // Draw Calvin Cycle Wheel (암반응) in Stroma (x: 350, y: 170)
+                calvinAngle += res.gross * 0.02;
+                microCtx.save();
+                microCtx.translate(350, 170);
+                microCtx.rotate(calvinAngle);
+                microCtx.strokeStyle = '#38bdf8';
+                microCtx.lineWidth = 3;
+                microCtx.setLineDash([6, 4]);
+                microCtx.beginPath();
+                microCtx.arc(0, 0, 45, 0, Math.PI * 2);
+                microCtx.stroke();
+                microCtx.restore();
+
+                microCtx.fillStyle = '#e0f2fe';
+                microCtx.font = 'bold 11px Noto Sans KR';
+                microCtx.textAlign = 'center';
+                microCtx.fillText('칼빈 회로', 350, 168);
+                microCtx.font = '9px Noto Sans KR';
+                microCtx.fillText('(포도당 C₆H₁₂O₆)', 350, 182);
+
+                // Animate Oxygen / CO2 Particles in Micro View
+                for (let i = bubbles.length - 1; i >= 0; i--) {
+                    let b = bubbles[i];
+                    b.y -= b.vy;
+                    microCtx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+                    microCtx.beginPath();
+                    microCtx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                    microCtx.fill();
+
+                    if (b.y < 40) bubbles.splice(i, 1);
+                }
+
+
+                // -------------------------------------------------------------
+                // 2. Macro View: Elodea Plant in Beaker with Gas Funnel
+                // -------------------------------------------------------------
+                macroCtx.clearRect(0, 0, macroCanvas.width, macroCanvas.height);
+
+                // Water Tank / Beaker
+                macroCtx.fillStyle = '#0369a1';
+                macroCtx.fillRect(100, 60, 280, 220);
+                macroCtx.strokeStyle = '#38bdf8';
+                macroCtx.lineWidth = 3;
+                macroCtx.strokeRect(100, 60, 280, 220);
+
+                // Funnel & Inverted Test Tube
+                macroCtx.fillStyle = 'rgba(224, 242, 254, 0.2)';
+                macroCtx.strokeStyle = '#bae6fd';
+                macroCtx.lineWidth = 2;
+                
+                // Test Tube top
+                macroCtx.fillRect(225, 20, 30, 120);
+                macroCtx.strokeRect(225, 20, 30, 120);
+
+                // Funnel body
+                macroCtx.beginPath();
+                macroCtx.moveTo(210, 200);
+                macroCtx.lineTo(240, 140);
+                macroCtx.lineTo(240, 120);
+                macroCtx.lineTo(270, 200);
+                macroCtx.closePath();
+                macroCtx.fill();
+                macroCtx.stroke();
+
+                // Elodea Plant Sprig (검정말)
+                macroCtx.strokeStyle = '#15803d';
+                macroCtx.lineWidth = 4;
+                macroCtx.beginPath();
+                macroCtx.moveTo(240, 260);
+                macroCtx.lineTo(240, 180);
+                macroCtx.stroke();
+
+                // Leaves
+                for (let y = 250; y >= 190; y -= 15) {
+                    macroCtx.fillStyle = '#22c55e';
+                    macroCtx.beginPath();
+                    macroCtx.ellipse(230, y, 12, 5, -0.4, 0, Math.PI * 2);
+                    macroCtx.fill();
+                    macroCtx.beginPath();
+                    macroCtx.ellipse(250, y, 12, 5, 0.4, 0, Math.PI * 2);
+                    macroCtx.fill();
+                }
+
+                // Light Lamp Source Graphic
+                const lampColor = state.wavelength === 'red' ? '#ef4444' :
+                                  state.wavelength === 'blue' ? '#3b82f6' :
+                                  state.wavelength === 'green' ? '#22c55e' : '#fef08a';
+
+                macroCtx.fillStyle = lampColor;
+                macroCtx.beginPath();
+                macroCtx.arc(45, 160, 22, 0, Math.PI * 2);
+                macroCtx.fill();
+                macroCtx.fillStyle = '#f8fafc';
+                macroCtx.font = '10px Noto Sans KR';
+                macroCtx.fillText('광원', 35, 163);
+
+                // Light Rays
+                if (state.light > 5) {
+                    macroCtx.strokeStyle = lampColor;
+                    macroCtx.globalAlpha = Math.min(0.6, state.light / 120);
+                    macroCtx.lineWidth = Math.max(1, state.light / 15);
+                    macroCtx.beginPath();
+                    macroCtx.moveTo(67, 145);
+                    macroCtx.lineTo(100, 100);
+                    macroCtx.moveTo(67, 160);
+                    macroCtx.lineTo(100, 160);
+                    macroCtx.moveTo(67, 175);
+                    macroCtx.lineTo(100, 220);
+                    macroCtx.stroke();
+                    macroCtx.globalAlpha = 1.0;
+                }
+
+                // Oxygen Bubbles rising up the test tube
+                const activeBubbleRate = Math.max(0, res.net);
+                if (activeBubbleRate > 0 && Math.random() < activeBubbleRate * 0.08) {
+                    if (!window.macroBubbles) window.macroBubbles = [];
+                    window.macroBubbles.push({
+                        x: 238 + (Math.random() * 4 - 2),
+                        y: 180,
+                        vy: 1.2 + Math.random() * 1.0,
+                        r: 2.5 + Math.random() * 2
+                    });
+                }
+
+                if (window.macroBubbles) {
+                    for (let i = window.macroBubbles.length - 1; i >= 0; i--) {
+                        let mb = window.macroBubbles[i];
+                        mb.y -= mb.vy;
+                        macroCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                        macroCtx.beginPath();
+                        macroCtx.arc(mb.x, mb.y, mb.r, 0, Math.PI * 2);
+                        macroCtx.fill();
+
+                        // Reach tube top
+                        if (mb.y < 35) {
+                            window.macroBubbles.splice(i, 1);
+                        }
+                    }
+                }
+
+                animFrameId = requestAnimationFrame(renderLoop);
+            }
+
+            renderLoop();
+        }
+
+        function loadQuizQuestion() {
+            const q = quizData[currentQuizIdx];
+            document.getElementById('quiz-question').innerText = `Q${currentQuizIdx + 1}. ${q.q}`;
+            
+            const optionsBox = document.getElementById('quiz-options');
+            optionsBox.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-2 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 transition flex items-center gap-2";
+                btn.innerHTML = `<span class="w-4 h-4 rounded-full bg-slate-800 text-[10px] flex items-center justify-center font-bold text-slate-400">${idx+1}</span> ${opt}`;
+                btn.onclick = () => checkQuizAnswer(idx);
+                optionsBox.appendChild(btn);
+            });
+
+            document.getElementById('quiz-feedback').className = "text-[11px] hidden p-2 rounded-lg font-medium";
+        }
+
+        function checkQuizAnswer(selectedIdx) {
+            const q = quizData[currentQuizIdx];
+            const fb = document.getElementById('quiz-feedback');
+            fb.classList.remove('hidden');
+
+            if (selectedIdx === q.ans) {
+                quizScore += 25;
+                fb.className = "text-[11px] p-2.5 rounded-lg font-medium bg-emerald-950/80 border border-emerald-700/60 text-emerald-300";
+                fb.innerHTML = `✅ <b>정답입니다!</b><br>${q.exp}`;
+            } else {
+                fb.className = "text-[11px] p-2.5 rounded-lg font-medium bg-rose-950/80 border border-rose-700/60 text-rose-300";
+                fb.innerHTML = `❌ <b>오답입니다.</b><br>${q.exp}`;
+            }
+            document.getElementById('quiz-score').innerText = `점수: ${quizScore}점`;
+        }
+
+        function nextQuizQuestion() {
+            currentQuizIdx = (currentQuizIdx + 1) % quizData.length;
+            loadQuizQuestion();
+        }
+
+        window.onload = function() {
+            initChart();
+            initCanvasAnimation();
+            updateSimulation();
+            loadQuizQuestion();
+        };
+
+    </script>
+</body>
+</html>
