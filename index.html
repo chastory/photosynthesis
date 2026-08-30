@@ -302,7 +302,7 @@
       </svg>
     </div>
     <div>
-      <h1>신기중 광합성 실험실 <span class="version-badge">v1.4</span></h1>
+      <h1>신기중 광합성 실험실 <span class="version-badge">v1.5</span></h1>
       <div class="sub">2022 개정 과학과 교육과정 · 광합성 단원 탐구 시뮬레이터</div>
     </div>
   </div>
@@ -390,14 +390,14 @@
         <div class="btn-row">
           <button class="btn primary" id="recordBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:-2px;margin-right:5px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
-            현재 조건 기록하기
+            현재 조건의 광합성 결과 기록하기
           </button>
         </div>
         <div class="btn-row" style="margin-top:8px">
           <button class="btn" id="resetVarsBtn">조건 기본값으로</button>
           <button class="btn" id="clearHistBtn">기록 지우기</button>
         </div>
-        <p style="font-size:12px;color:var(--ink-muted);margin-top:10px;line-height:1.5">슬라이드바를 움직이면 결과가 바로 바뀌어요. 표와 그래프에 남기려면 <b style="color:var(--ink-secondary);font-weight:normal">［현재 조건 기록하기］</b>를 눌러주세요.</p>
+        <p style="font-size:12px;color:var(--ink-muted);margin-top:10px;line-height:1.5">슬라이드바를 움직이면 결과가 바로 바뀌어요. 표와 그래프에 남기려면 <b style="color:var(--ink-secondary);font-weight:normal">［현재 조건의 광합성 결과 기록하기］</b>를 눌러주세요.</p>
       </div>
     </div>
 
@@ -700,7 +700,7 @@
   }
 
   // 슬라이드바/파장 선택은 실시간 결과만 갱신한다.
-  // 표·그래프에 기록을 남기는 것은 "현재 조건 기록하기" 버튼을 눌렀을 때뿐이다.
+  // 표·그래프에 기록을 남기는 것은 "현재 조건의 광합성 결과 기록하기" 버튼을 눌렀을 때뿐이다.
   els.light.addEventListener('input', updateLive);
   els.temp.addEventListener('input', updateLive);
   els.co2.addEventListener('input', updateLive);
@@ -757,7 +757,7 @@
 
   async function exportChartImage(format){
     if(history.length === 0){
-      alert('저장할 기록이 없어요. 먼저 "현재 조건 기록하기"를 눌러 데이터를 남겨주세요.');
+      alert('저장할 기록이 없어요. 먼저 "현재 조건의 광합성 결과 기록하기"를 눌러 데이터를 남겨주세요.');
       return;
     }
     const sourceCanvas = chart.canvas;
@@ -785,7 +785,7 @@
   /* ---------- 탐구 기록표 이미지 저장 ---------- */
   async function exportTableImage(){
     if(history.length === 0){
-      alert('저장할 기록이 없어요. 먼저 "현재 조건 기록하기"를 눌러 데이터를 남겨주세요.');
+      alert('저장할 기록이 없어요. 먼저 "현재 조건의 광합성 결과 기록하기"를 눌러 데이터를 남겨주세요.');
       return;
     }
     const cs = getComputedStyle(document.body);
@@ -928,7 +928,7 @@
 
   function openReport(){
     if(history.length === 0){
-      alert('기록된 데이터가 없어요. 먼저 "현재 조건 기록하기"를 눌러 데이터를 남겨주세요.');
+      alert('기록된 데이터가 없어요. 먼저 "현재 조건의 광합성 결과 기록하기"를 눌러 데이터를 남겨주세요.');
       return;
     }
     const bodyHtml = buildReportBodyHTML();
